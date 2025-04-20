@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Colorful Daily Planner Web App</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #f8ffae 0%, #43c6ac 100%);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .planner-container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 8px 24px #a7ffeb99;
+      padding: 30px 25px 20px 25px;
+    }
+    h2 {
+      text-align: center;
+      color: #0b5345;
+      margin-bottom: 24px;
+    }
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+      justify-content: center;
+    }
+    .task-input, .date-input {
+      padding: 10px;
+      border: 1px solid #b2bec3;
+      border-radius: 6px;
+      font-size: 1em;
+    }
+    .task-input { flex: 2; }
+    .date-input { flex: 1; }
+    .add-btn {
+      background: #00b894;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .add-btn:hover {
+      background: #098c6c;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #b2bec3;
+      padding: 12px 8px;
+      text-align: center;
+    }
+    th {
+      background: #d4fc79;
+      color: #34495e;
+      font-size: 1.1em;
+    }
+    .task-emoji {
+      font-size: 1.7em;
+      vertical-align: middle;
+    }
+    .days-green { background: #e0ffd6; color: #388e3c; font-weight: bold; }
+    .days-yellow { background: #fff9c4; color: #f57c00; font-weight: bold; }
+    .days-red { background: #ffebee; color: #c62828; font-weight: bold; }
+    .remove-btn {
+      background: #ff5252;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .remove-btn:hover {
+      background: #b71c1c;
+    }
+    .completed {
+      text-decoration: line-through;
+      color: #aaa;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <div class="planner-container">
+    <h2>🌈 Daily Planner Table</h2>
+    <div class="input-row">
+      <input type="text" class="task-input" id="taskInput" placeholder="Enter activity (e.g. Read, Run)">
+      <input type="date" class="date-input" id="dateInput">
+      <button class="add-btn" onclick="addTask()">Add</button>
+    </div>
+    <table id="plannerTable">
+      <thead>
+        <tr>
+          <th>Done</th>
+          <th>Picture</th>
+          <th>Activity</th>
+          <th>Due Date</th>
+          <th>Days Remaining</th>
+          <th>Remove</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Tasks will appear here -->
+      </tbody>
+    </table>
+  </div>
+  <script>
+    // Emoji mapping for activities
+    const emojiMap = {
+      read: "📚",
+      run: "🏃‍♂️",
+      workout: "💪",
+      call: "📞",
+      email: "✉️",
+      shop: "🛒",
+      cook: "🍳",
+      clean: "🧹",
+      write: "📝",
+      meet: "🤝",
+      study: "🧑‍🎓",
+      pay: "💸",
+      water: "💧",
+      sleep: "😴",
+      birthday: "🎂",
+      default: "🌟"
+    };
+
+    function getEmoji(task) {
+      const lower = task.toLowerCase();
+      for (const key in emojiMap) {
+        if (lower.includes(key)) return emojiMap[key];
+      }
+      return emojiMap.default;
+    }
+
+    function addTask() {
+      const taskInput = document.getElementById('taskInput');
+      const dateInput = document.getElementById('dateInput');
+      const plannerTable = document.getElementById('plannerTable').getElementsByTagName('tbody')[0];
+      const task = taskInput.value.trim();
+      const dueDate = dateInput.value;
+
+      if (!task || !dueDate) {
+        alert('Please enter a task and select a due date.');
+        return;
+      }
+
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const due = new Date(dueDate);
+      due.setHours(0,0,0,0);
+      const timeDiff = due - today;
+      const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+      // Reminder for due today
+      if (daysRemaining === 0) {
+        setTimeout(() => {
+          alert(`⏰ Reminder: "${task}" is due today!`);
+        }, 500);
+      }
+
+      // Create table row
+      const row = plannerTable.insertRow();
+
+      // Checkbox cell
+      const checkCell = row.insertCell();
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.onclick = function() {
+        if (checkbox.checked) {
+          activityCell.classList.add('completed');
+        } else {
+          activityCell.classList.remove('completed');
+        }
+      };
+      checkCell.appendChild(checkbox);
+
+      // Emoji picture
+      const emojiCell = row.insertCell();
+      emojiCell.innerHTML = `<span class="task-emoji">${getEmoji(task)}</span>`;
+
+      // Activity
+      const activityCell = row.insertCell();
+      activityCell.textContent = task;
+
+      // Due Date
+      const dueDateCell = row.insertCell();
+      dueDateCell.textContent = dueDate;
+
+      // Days Remaining
+      const daysCell = row.insertCell();
+      if (daysRemaining > 2) {
+        daysCell.className = 'days-green';
+        daysCell.textContent = `Days left: ${daysRemaining}`;
+      } else if (daysRemaining >= 0) {
+        daysCell.className = 'days-yellow';
+        daysCell.textContent = daysRemaining === 0 ? "Due today!" : `Only ${daysRemaining} day(s) left!`;
+      } else {
+        daysCell.className = 'days-red';
+        daysCell.textContent = "Overdue!";
+      }
+
+      // Remove button
+      const removeCell = row.insertCell();
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-btn';
+      removeBtn.textContent = 'Remove';
+      removeBtn.onclick = () => row.remove();
+      removeCell.appendChild(removeBtn);
+
+      // Clear inputs
+      taskInput.value = '';
+      dateInput.value = '';
+    }
+  </script>
+</body>
+</html>
